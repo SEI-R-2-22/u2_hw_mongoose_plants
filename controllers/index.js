@@ -35,7 +35,7 @@ const getPlantById = async (req, res) => {
 
 const updatePlant = async (req, res) => {
     try {
-        const { id } = req.params;
+       const { id } = req.params;
        const plant = await Plant.findByIdAndUpdate(id, req.body, { new: true })
         res.json(plant)
     } catch (error) {
