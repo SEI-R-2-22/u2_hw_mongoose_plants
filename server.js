@@ -1,19 +1,13 @@
 const express = require('express')
 const routes = require('./routes')
 const db = require('./db')
-
-// require() imports and middleware here ^ ///////
+const logger = require('morgan')
+const app = express()
 
 const PORT = process.env.PORT || 3001
 
-const app = express()
 app.use(express.json())
-
-const logger = require('morgan')
 app.use(logger('dev'))
-
-// app.use() middleware here ^ ///////////////////
-
 app.use('/api', routes)
 
 db.on('error', console.error.bind(console, 'MongoDB connection error:'))
