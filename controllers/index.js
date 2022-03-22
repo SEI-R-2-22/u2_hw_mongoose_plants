@@ -62,5 +62,6 @@ module.exports = {
   createPlant,
   getAllPlants,
   getPlantById,
-  updatePlant
+  updatePlant,
+  deletePlant
 }
