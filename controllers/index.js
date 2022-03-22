@@ -45,6 +45,19 @@ const updatePlant = async (req, res) => {
   }
 }
 
+const deletePlant = async (req, res) => {
+  try {
+    const { id } = req.params
+    const deleted = await Plant.findByIdAndDelete(id)
+    if (deleted) {
+      return res.status(200).send('Plant deleted')
+    }
+    throw new Error('Plant not found')
+  } catch (error) {
+    return res.status(500).send(error.message)
+  }
+}
+
 module.exports = {
   createPlant,
   getAllPlants,
