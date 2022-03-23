@@ -16,6 +16,7 @@ app.use(bodyParser.json()); // required to work with
 app.use(logger('dev'));
 
 app.use('/api', routes);
+// ↑ Effectively makes this the homepage? 
 
 db.on('error', console.error.bind(console.Console, "<<server.js>> ERROR - MongoDB Connection error: "));
 

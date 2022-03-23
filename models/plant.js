@@ -13,3 +13,4 @@ const Schema = mongoose.Schema;
   )
 
   module.exports = mongoose.model('plants', Plant);
+  // Also doing association here, instead of in a "models/index.js" like we did in class.

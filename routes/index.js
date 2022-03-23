@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const controllers = require('../controllers')
 const router = Router();
+// ↑ We were doing something different in class...
 
 router.get('/', (req,res) => res.send("This is (G)root!"));
 

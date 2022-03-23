@@ -1,3 +1,4 @@
+// Require mongoose for error check:
 const mongoose = require('mongoose');
 const Plant = require('../models/plant');
 

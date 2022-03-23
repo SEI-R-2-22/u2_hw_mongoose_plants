@@ -1,6 +1,7 @@
 const db = require('../db');
 const Plant = require('../models/plant');
 
+//custom error to track pages:
 db.on('error', console.error.bind(console, `<<seed/plants.js>> MongoDB Connection error: `));
 
 const main = async () => {
