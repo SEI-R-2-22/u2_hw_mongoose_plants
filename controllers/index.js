@@ -34,20 +34,15 @@ const getPlantById = async (req, res) => {
     }
 }
 
+// Changed updatePlant per Ife's suggestion in the sei-r-2-22-g1-questions slack page:
 const updatePlant = async (req, res) => {
     try {
-        const { id } = req.params;
-        await Plant.findByIdAndUpdate(id, req.body, { new: true }, (err, plant) => {
-            if (err) {
-                res.status(500).send(err);
-            }
-            if (!plant) {
-                res.status(500).send('Plant not found!');
-            }
-            return res.status(200).json(plant);
-        })
-    } catch (error) {
-        return res.status(500).send(error.message);
+    const plant = await Plant.findByIdAndUpdate(req.params.id, req.body, {
+    new: true
+    })
+    res.json(plant)
+    } catch (err) {
+    res.send(err.message)
     }
 }
 
