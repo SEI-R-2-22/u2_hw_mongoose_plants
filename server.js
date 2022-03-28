@@ -2,7 +2,6 @@ const express = require('express')
 const routes = require('./routes')
 const db = require('./db')
 const bodyParser = require('body-parser')
-
 const logger = require('morgan')
 // require() imports and middleware here ^ ///////
 
