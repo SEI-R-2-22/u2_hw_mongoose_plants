@@ -107,7 +107,7 @@ node seed/plants.js
 
 Check to see that the data was created by using the `mongosh` shell.
 
-Create a .gitignore file `touch .gitignore`!
+Create a `.gitignore` file and add the following to it:
 ```sh
 /node_modules
 .DS_Store
@@ -189,9 +189,7 @@ const createPlant = async (req, res) => {
     try {
         const plant = await new Plant(req.body)
         await plant.save()
-        return res.status(201).json({
-            plant,
-        });
+        return res.status(201).json(plant);
     } catch (error) {
         return res.status(500).json({ error: error.message })
     }
@@ -251,43 +249,42 @@ ___
 
 Now that you have a blueprint for creating a method in the controller and connecting it to a route, replicate that flow for getting all plants:
 
-<details><summary>/controllers/index.js</summary>
-    ```js
-    const Plant = require('../models/plant');
 
-    const createPlant = async (req, res) => {
-        try {
-            const plant = await new Plant(req.body)
-            await plant.save()
-            return res.status(201).json(plant);
-        } catch (error) {
-            return res.status(500).json({ error: error.message })
-        }
+```js
+const Plant = require('../models/plant');
+
+const createPlant = async (req, res) => {
+    try {
+        const plant = await new Plant(req.body)
+        await plant.save()
+        return res.status(201).json(plant);
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
     }
+}
 
-    const getAllPlants = async (req, res) => {
-        try {
-            const plants = await Plant.find({})
-            return res.status(200).json(plants)
-        } catch (error) {
-            return res.status(500).send(error.message);
-        }
+const getAllPlants = async (req, res) => {
+    try {
+        const plants = await Plant.find({})
+        return res.status(200).json(plants)
+    } catch (error) {
+        return res.status(500).send(error.message);
     }
+}
 
-    module.exports = {
-        createPlant,
-        getAllPlants
-    }
-    ```
+module.exports = {
+    createPlant,
+    getAllPlants
+}
+```
 
-    Add the following route to your ./routes/index.js file:
-    ```js
-    router.get('/plants', controllers.getAllPlants)
-    ```
-</details>
+Add the following route:    
+```js
+// routes/index.js
+router.get('/plants', controllers.getAllPlants)
+```
 
 Make sure to test your route via Insomnia and verify that all the plants are being returned from your request.
-
 ___
 #### getPlantById
 
@@ -299,7 +296,7 @@ const getPlantById = async (req, res) => {
         const { id } = req.params;
         const plant = await Plant.findById(id)
         if (plant) {
-            return res.status(200).json({ plant });
+            return res.status(200).json(plant);
         }
         return res.status(404).send('Plant with the specified ID does not exists');
     } catch (error) {
@@ -374,7 +371,6 @@ module.exports = {
 }
 ```
 
-
 Let's add our routes:
 ```js
 // routes/index.js
@@ -388,18 +384,14 @@ To test the delete functionality switch the method to DELETE in Insomnia and tes
 
 Success! We built a full CRUD JSON API in MongoDB, Mongoose, and Express using Express Router! 
 
-
 ![](https://i0.wp.com/media.boingboing.net/wp-content/uploads/2018/06/echinopsis-02.gif?resize=480%2C270&ssl=1)
-
 
 ## Requirements
 - Express connected to MongoDB through Mongoose connection
 - All plant routes and controllers testing properly through Insomnia 
 
-
 ## Bonus
 - Add your own selection of plants to your API!
-
 
 ## Submission Guidelines
 - Pull Request must be submitted utilizing these guidelines: [PR Guidelines](https://github.com/SEI-R-6-21/template_pull_request)
