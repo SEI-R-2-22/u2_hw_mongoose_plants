@@ -3,7 +3,7 @@
 ![barnsely's](https://i.ytimg.com/vi/iGMGVpLMtMs/maxresdefault.jpg)
 
 ## Overview
-In this deliverable we'll be building our very own custom API about plants! We'll be building it from the ground up to cover the entire process using `express.Router`.
+In this deliverable we'll be building a full CRUD plants API using Mongoose with Express.
 
 ## Getting started
 
@@ -11,9 +11,6 @@ In this deliverable we'll be building our very own custom API about plants! We'l
 
 ## Instructions
 ### Setup
-
-Let's start!
-
 ```sh
 npm init -y
 npm install mongoose
@@ -29,7 +26,7 @@ code .
 ### Mongoose Database Connection
 Inside our `db` folder we are going to use Mongoose to establish a connection to our MongoDB `plantsDatabase`:
 
-mongodb-mongoose-express-using-router/db/index.js
+`/db/index.js`
 ```js
 const mongoose = require('mongoose')
 
