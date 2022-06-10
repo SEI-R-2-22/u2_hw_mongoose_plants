@@ -292,7 +292,7 @@ ___
 #### getPlantById
 
 Nice, now let's add the ability to find a specific plant:
-<details><summary>/controllers/index.js</summary>
+
 ```js
 const getPlantById = async (req, res) => {
     try {
@@ -309,9 +309,8 @@ const getPlantById = async (req, res) => {
 ```
 
 Add it to the export:
-
-/controllers/index.js
 ```js
+// controllers/index.js
 module.exports = {
     createPlant,
     getAllPlants,
@@ -320,13 +319,10 @@ module.exports = {
 ```
 
 Add the route:
-
-/routes/index.js
 ```js
+// routes/index.js
 router.get('/plants/:id', controllers.getPlantById)
 ```
-</details>
-
 
 Make sure to test your route via Insomnia and verify that you are getting a plant object back.
 
@@ -335,7 +331,6 @@ ___
 
 Let's add the functionality for updating and deleting specific plants:
 
-<details><summary>/controllers/index.js</summary>
 ```js
 const updatePlant = async (req, res) => {
     try {
@@ -381,14 +376,11 @@ module.exports = {
 
 
 Let's add our routes:
-
-/routes/index.js
 ```js
+// routes/index.js
 router.put('/plants/:id', controllers.updatePlant)
 router.delete('/plants/:id', controllers.deletePlant)
 ```
-</details>
-
 
 Remember to test your update route in Insomnia similar to a POST route but with the PUT method.  If successful, you should recieve the updated plant as a response.
 
