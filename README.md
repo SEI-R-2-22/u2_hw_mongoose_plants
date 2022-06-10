@@ -26,8 +26,8 @@ code .
 ### Mongoose Database Connection
 Inside our `db` folder we are going to use Mongoose to establish a connection to our MongoDB `plantsDatabase`:
 
-`/db/index.js`
 ```js
+// db/index.js
 const mongoose = require('mongoose')
 
 let MONGODB_URI = 'mongodb://127.0.0.1:27017/plantsDatabase'
@@ -48,8 +48,8 @@ module.exports = db
 
 ### Mongoose Schemas and Models
 
-mongodb-mongoose-express-using-router/models/plant.js
 ```js
+// models/plant.js
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
@@ -66,11 +66,10 @@ module.exports = mongoose.model('Plant', plantSchema)
 ```
 
 ### Seeding The Database
-
 ![seeding](https://animeshelter.com/wp-content/uploads/2018/02/qosplantmagic.gif)
 
-mongodb-mongoose-express-using-router/seed/plants.js
 ```js
+// seed/plants.js
 const db = require('../db')
 const Plant = require('../models/plant')
 
@@ -106,17 +105,9 @@ Let's execute our plants seed file:
 node seed/plants.js
 ```
 
-Check to see that the data was created by using the `mongosh` shell:
-
-```mongo
-mongosh
-> use plantsDatabase
-> db.plants.find({})
-> exit
-```
+Check to see that the data was created by using the `mongosh` shell.
 
 Create a .gitignore file `touch .gitignore`!
-
 ```sh
 /node_modules
 .DS_Store
@@ -132,12 +123,10 @@ npm install nodemon --include=dev
 Modify the "scripts" object in `package.json`:
 
 ```sh
-...
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-...
 ```
 
 And now let's setup our express folders:
@@ -149,8 +138,8 @@ touch server.js routes/index.js controllers/index.js
 
 Let's setup the root route:
 
-mongodb-mongoose-express-using-router/routes/index.js
 ```js
+// routes/index.js
 const { Router } = require('express');
 const router = Router();
 
@@ -161,51 +150,39 @@ module.exports = router;
 
 ![root](https://mrtreeservices.com/wp-content/uploads/2017/04/How-to-Prevent-Roots-from-Damaging-Your-Pipes.jpg)
 
-Inside of server.js:
 ```js
+// server.js
+// DEPENDENCIES
 const express = require('express');
-const routes = require('./routes');
-const db = require('./db');
+const app = express();
+const logger = require('morgan');
+const routes = require('./routes'); // the routes/index.js is imported in this line
+const db = require('./db'); // the database logic is imported on this line
 
-// require() imports and middleware here ^ ///////
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 const PORT = process.env.PORT || 3001;
 
-const app = express();
+// MIDDLEWARE
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// app.use() middleware here ^ ///////////////////
-
+// ROUTES
 app.use('/api', routes);
 
-db.on('error', console.error.bind(console, 'MongoDB connection error:'))
-
-app.listen(PORT, () => console.log(`Listening on port: ${PORT}`))
+app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 ```
 
-Test the route:
-```sh
-npm run dev
-```
-
-Test the root endpoint in Insomnia: http://localhost:3001/api/
-
-- You should see something like this in your terminal:
-    
-    ```sh
-    [nodemon] starting `node server.js`
-    Listening on port: 3001
-    Successfully connected to MongoDB.
-    ```
-- And something like this in Insomnia: `This is root!`
+Start your server and test the root endpoint in Insomnia: http://localhost:3001/api/.  If successful you should see "This is root!"
 
 ___
 ### Routes and Controllers
 Controllers are where we will house all of our logic around database interactions.
 
 #### createPlant
-
-u2_hw_mongoose_plants/controllers/index.js
 ```js
+// controllers/index.js
 const Plant = require('../models/plant');
 
 const createPlant = async (req, res) => {
@@ -225,44 +202,10 @@ module.exports = {
 }
 ```
 
-<details><summary>server.js should look like this:</summary>
-    
-    
-  ```js
-  const express = require('express');
-  const app = express();
-  const logger = require('morgan');
-  const routes = require('./routes');
-  const db = require('./db');
-  // require() imports and middleware here ^ ///////
-
-  const PORT = process.env.PORT || 3001;
-
-  
-  app.use(logger('dev'))
-  app.use(express.json())
-  app.use(express.urlencoded({ extended: true }))
-  // app.use() middleware here ^ ///////////////////
-
-  app.use('/api', routes);
-
-  db.on('error', console.error.bind(console, 'MongoDB connection error:'))
-
-  app.listen(PORT, () => console.log(`Listening on port: ${PORT}`))
-  ```
-    
-</details>
-
-Run the server again:
-
-```sh
-npm run dev
-```
-
 Create a route on our server to connect the request with the controller:
 
-mongodb-mongoose-express-using-router/routes/index.js:
 ```js
+// routes/index.js
 const { Router } = require('express');
 const controllers = require('../controllers')
 const router = Router();
