@@ -1,3 +1,5 @@
+### SEIR 0508
+
 # Mongoose Plants API
 
 ![barnsely's](https://i.ytimg.com/vi/iGMGVpLMtMs/maxresdefault.jpg)
@@ -19,7 +21,7 @@ Let's start!
 npm init -y
 npm install mongoose
 mkdir db models seed
-touch db/index.js models/plant.js seed/plants.js
+touch db/.js models/plant.js seed/plants.js
 ```
 
 Now let's open up Visual Studio Code and write some code:
@@ -35,16 +37,16 @@ mongodb-mongoose-express-using-router/db/index.js
 ```js
 const mongoose = require('mongoose')
 
-let MONGODB_URI = 'mongodb://127.0.0.1:27017/plantsDatabase'
-
 mongoose
-    .connect(MONGODB_URI)
+    .connect('mongodb://127.0.0.1:27017/plantsDatabase')
     .then(() => {
         console.log('Successfully connected to MongoDB.')
     })
     .catch(e => {
         console.error('Connection error', e.message)
     })
+
+
 
 const db = mongoose.connection
 
@@ -55,10 +57,10 @@ module.exports = db
 ### Mongoose Schemas and Models
 Although, MongoDB is schema-less, Mongoose allows us to write a schema for our plant model which makes it nice to know what is a plant in our database and what a plant "looks" like in our database:
 
-mongodb-mongoose-express-using-router/models/plant.js
+models/plant.js
 ```js
 const mongoose = require('mongoose')
-const Schema = mongoose.Schema
+const  { Schema } = require('mongoose')
 
 const Plant = new Schema(
     {
@@ -121,7 +123,7 @@ node seed/plants.js
 So how do we know if it worked? We could drop into the `mongo` interactive shell and check:
 
 ```mongo
-mongo
+mongosh
 > use plantsDatabase
 > db.plants.find()
 > exit
@@ -157,20 +159,16 @@ Add the scripts to your `package.json`:
 And now let's setup our express folders:
 
 ```sh
-mkdir routes controllers
-touch server.js routes/index.js controllers/index.js
+mkdir  controllers
+touch server.js  controllers/plantController.js
 ```
 
 Let's setup the root route:
 
-mongodb-mongoose-express-using-router/routes/index.js
 ```js
-const { Router } = require('express');
-const router = Router();
 
-router.get('/', (req, res) => res.send('This is root!'))
+app.get('/', (req, res) => res.send('This is root!'))
 
-module.exports = router;
 ```
 
 ![root](https://mrtreeservices.com/wp-content/uploads/2017/04/How-to-Prevent-Roots-from-Damaging-Your-Pipes.jpg)
@@ -178,7 +176,6 @@ module.exports = router;
 Inside of server.js:
 ```js
 const express = require('express');
-const routes = require('./routes');
 const db = require('./db');
 
 // require() imports and middleware here ^ ///////
@@ -189,10 +186,6 @@ const app = express();
 
 // app.use() middleware here ^ ///////////////////
 
-app.use('/api', routes);
-
-db.on('error', console.error.bind(console, 'MongoDB connection error:'))
-
 app.listen(PORT, () => console.log(`Listening on port: ${PORT}`))
 ```
 
@@ -201,7 +194,7 @@ Test the route:
 npm run dev
 ```
 
-Test the root endpoint in your browser: http://localhost:3001/api/
+Test the root endpoint in your browser: http://localhost:3001/
 
 - You should see something like this in your terminal:
     
@@ -216,9 +209,150 @@ ___
 ### Routes and Controllers
 Good, now let's work on the controllers. Controllers are where we will set up all of our logic e.g. what does the API do when we want to create a new plant? Update a plant? etc.
 
+#### getAllPlants
+
+![plant kingdom](https://i1.wp.com/orbitbiotech.com/wp-content/uploads/2018/04/plant-kingdom-Orbit-Biotech-Training.jpg?fit=600%2C285&ssl=1)
+
+Awesome! Now I want to create a controller method to grab all the plants from the database:
+
+u2_hw_mongoose_plants/controllers/plantController.js
+```js
+const Plant = require('../models/plant');
+
+const getAllPlants = async (req, res) => {
+    try {
+        const plants = await Plant.find()
+        return res.status(200).json({ plants })
+    } catch (error) {
+        return res.status(500).send(error.message);
+    }
+}
+
+module.exports = {
+    getAllPlants
+}
+```
+
+Add the following route to your server.js file:
+```js
+app.get('/plants', controllers.getAllPlants)
+```
+
+Open http://localhost:3001/api/plants in your browser or do a GET request in ThunderClient.
+
+- You should see an JSON object with an array of all `"plants":` in the database
+- Make sure to grab the `_id` of the `"Test Plant"` we just added in the previous step, it will be useful for the next few routes.
+- It should look something like this:
+    
+    ```js
+    "_id": "5e38921e9c3bd077f50dc9a2"
+    ```
+
+___
+#### getPlantById
+
+Nice, now let's add the ability to find a specific plant:
+
+u2_hw_mongoose_plants/controllers/plantController.js
+```js
+const getPlantById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const plant = await Plant.findById(id)
+        if (plant) {
+            return res.status(200).json({ plant });
+        }
+        return res.status(404).send('Plant with the specified ID does not exists');
+    } catch (error) {
+        return res.status(500).send(error.message);
+    }
+}
+```
+
+Add it to the export:
+
+u2_hw_mongoose_plants/controllers/plantController.js
+```js
+module.exports = {
+    getAllPlants,
+    getPlantById
+}
+```
+
+Add the route:
+
+u2_hw_mongoose_plants/server.js
+```js
+app.get('/plants/:id', controllers.getPlantById)
+```
+
+Test it! Your URL shold look like this, but with the `_id` of _your Test Plant_ in your URL `:params` :
+http://localhost:3001/api/plants/5e38921e9c3bd077f50dc9a2
+
+This is a good point to integrate better logging. Right now, if we check our terminal when we hit the http://localhost:3001/api/plants/5e38921e9c3bd077f50dc9a2 endpoint we see the raw SQL that was executed. For debugging purposes and overall better logging we're going to use an express middleware called `morgan`:
+
+```sh
+npm install morgan
+```
+
+Add the following to your server.js file:
+```js
+const logger = require('morgan');
+app.use(logger('dev'))
+```
+
+<details><summary>server.js should look like this afterward:</summary>
+    
+    
+  ```js
+  const express = require('express');
+  const db = require('./db');
+  const bodyParser = require('body-parser');
+  const logger = require('morgan');
+  // require() imports and middleware here ^ ///////
+
+  const PORT = process.env.PORT || 3001;
+
+  const app = express();
+  app.use(bodyParser.json());
+  app.use(logger('dev'))
+  // app.use() middleware here ^ ///////////////////
+
+  db.on('error', console.error.bind(console, 'MongoDB connection error:'))
+
+  app.listen(PORT, () => console.log(`Listening on port: ${PORT}`))
+  ```
+    
+</details>
+
+
+Let's see the result:
+
+```sh
+npm run dev
+```
+
+In another terminal, run:
+```
+open http://localhost:3001/api/plants/5e38921e9c3bd077f50dc9a2
+```
+
+You should now see in your server's terminal something like this:
+```sh
+GET /plants/5e38921e9c3bd077f50dc9a2 200 14.273 ms
+```
+
+That's `morgan`! That's some good logging!
+
+![logging](https://media0.giphy.com/media/49HINwAf1JOuI/giphy.gif)
+
+
+
+## Bonus! Create, Update, and Delete!
+
 #### createPlant
 
-u2_hw_mongoose_plants/controllers/index.js
+/controllers/plantController.js
 ```js
 const Plant = require('../models/plant');
 
@@ -270,7 +404,6 @@ app.use(bodyParser.json())
   app.use(bodyParser.json());
   // app.use() middleware here ^ ///////////////////
 
-  app.use('/api', routes);
 
   db.on('error', console.error.bind(console, 'MongoDB connection error:'))
 
@@ -287,21 +420,17 @@ npm run dev
 
 Cool. We have the logic to create a new plant. Now let's create a route on our server to connect the request with the controller:
 
-mongodb-mongoose-express-using-router/routes/index.js:
 ```js
-const { Router } = require('express');
 const controllers = require('../controllers')
-const router = Router();
 
-router.get('/', (req, res) => res.send('This is root!'))
+app.get('/', (req, res) => res.send('This is root!'))
 
-router.post('/plants', controllers.createPlant)
+app.post('/plants', plantController.createPlant)
 
-module.exports = router;
 ```
 
 
-Use Insomnia to send a POST method to test the create route (http://localhost:3001/api/plants):
+Use ThunderClient to send a POST method to test the create route (http://localhost:3001/api/plants):
 
 ```js
 {
@@ -328,166 +457,12 @@ Use Insomnia to send a POST method to test the create route (http://localhost:30
     ```
 
 ___
-#### getAllPlants
-
-![plant kingdom](https://i1.wp.com/orbitbiotech.com/wp-content/uploads/2018/04/plant-kingdom-Orbit-Biotech-Training.jpg?fit=600%2C285&ssl=1)
-
-Awesome! Now I want to create a controller method to grab all the plants from the database:
-
-u2_hw_mongoose_plants/controllers/index.js
-```js
-const Plant = require('../models/plant');
-
-const createPlant = async (req, res) => {
-    try {
-        const plant = await new Plant(req.body)
-        await plant.save()
-        return res.status(201).json({
-            plant,
-        });
-    } catch (error) {
-        return res.status(500).json({ error: error.message })
-    }
-}
-
-const getAllPlants = async (req, res) => {
-    try {
-        const plants = await Plant.find()
-        return res.status(200).json({ plants })
-    } catch (error) {
-        return res.status(500).send(error.message);
-    }
-}
-
-module.exports = {
-    createPlant,
-    getAllPlants
-}
-```
-
-Add the following route to your ./routes/index.js file:
-```js
-router.get('/plants', controllers.getAllPlants)
-```
-
-Open http://localhost:3001/api/plants in your browser or do a GET request in Insomnia.
-
-- You should see an JSON object with an array of all `"plants":` in the database
-- Make sure to grab the `_id` of the `"Test Plant"` we just added in the previous step, it will be useful for the next few routes.
-- It should look something like this:
-    
-    ```js
-    "_id": "5e38921e9c3bd077f50dc9a2"
-    ```
-
-___
-#### getPlantById
-
-Nice, now let's add the ability to find a specific plant:
-
-u2_hw_mongoose_plants/controllers/index.js
-```js
-const getPlantById = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const plant = await Plant.findById(id)
-        if (plant) {
-            return res.status(200).json({ plant });
-        }
-        return res.status(404).send('Plant with the specified ID does not exists');
-    } catch (error) {
-        return res.status(500).send(error.message);
-    }
-}
-```
-
-Add it to the export:
-
-u2_hw_mongoose_plants/controllers/index.js
-```js
-module.exports = {
-    createPlant,
-    getAllPlants,
-    getPlantById
-}
-```
-
-Add the route:
-
-u2_hw_mongoose_plants/routes/index.js
-```js
-router.get('/plants/:id', controllers.getPlantById)
-```
-
-Test it! Your URL shold look like this, but with the `_id` of _your Test Plant_ in your URL `:params` :
-http://localhost:3001/api/plants/5e38921e9c3bd077f50dc9a2
-
-This is a good point to integrate better logging. Right now, if we check our terminal when we hit the http://localhost:3001/api/plants/5e38921e9c3bd077f50dc9a2 endpoint we see the raw SQL that was executed. For debugging purposes and overall better logging we're going to use an express middleware called `morgan`:
-
-```sh
-npm install morgan
-```
-
-Add the following to your server.js file:
-```js
-const logger = require('morgan');
-app.use(logger('dev'))
-```
-
-<details><summary>server.js should look like this afterward:</summary>
-    
-    
-  ```js
-  const express = require('express');
-  const routes = require('./routes');
-  const db = require('./db');
-  const bodyParser = require('body-parser');
-  const logger = require('morgan');
-  // require() imports and middleware here ^ ///////
-
-  const PORT = process.env.PORT || 3001;
-
-  const app = express();
-  app.use(bodyParser.json());
-  app.use(logger('dev'))
-  // app.use() middleware here ^ ///////////////////
-
-  app.use('/api', routes);
-
-  db.on('error', console.error.bind(console, 'MongoDB connection error:'))
-
-  app.listen(PORT, () => console.log(`Listening on port: ${PORT}`))
-  ```
-    
-</details>
-
-
-Let's see the result:
-
-```sh
-npm run dev
-```
-
-In another terminal, run:
-```
-open http://localhost:3001/api/plants/5e38921e9c3bd077f50dc9a2
-```
-
-You should now see in your server's terminal something like this:
-```sh
-GET /api/plants/5e38921e9c3bd077f50dc9a2 200 14.273 ms
-```
-
-That's `morgan`! That's some good logging!
-
-![logging](https://media0.giphy.com/media/49HINwAf1JOuI/giphy.gif)
-
 ___
 #### updatePlant and deletePlant
 
 So we can now create plants, show all plants, and show a specific plant. How about updating a plant and deleting a plant?
 
-u2_hw_mongoose_plants/controllers/index.js
+u2_hw_mongoose_plants/controllers/plantController.js
 ```js
 const updatePlant = async (req, res) => {
     try {
@@ -530,15 +505,15 @@ module.exports = {
 
 Let's add our routes:
 
-u2_hw_mongoose_plants/routes/index.js
+u2_hw_mongoose_plants/server.js
 ```js
-router.put('/plants/:id', controllers.updatePlant)
-router.delete('/plants/:id', controllers.deletePlant)
+app.put('/plants/:id', controllers.updatePlant)
+app.delete('/plants/:id', controllers.deletePlant)
 ```
 
-Test update (PUT) in Insomnia. Remember that you'll have to use the `_id` of _your_ Test Plant. Your request body in Insomnia will have to look something like this:
+Test update (PUT) in ThunderClient. Remember that you'll have to use the `_id` of _your_ Test Plant. Your request body in Insomnia will have to look something like this:
 
-http://localhost:3001/api/plants/5e38921e9c3bd077f50dc9a2
+http://localhost:3001/plants/5e38921e9c3bd077f50dc9a2
 
 ```js
 {
@@ -548,7 +523,7 @@ http://localhost:3001/api/plants/5e38921e9c3bd077f50dc9a2
 }
 ```
 
-Test delete (DEL) in Insomnia using a URL like this http://localhost:3001/api/plants/5e38921e9c3bd077f50dc9a2
+Test delete (DEL) in ThunderClient using a URL like this http://localhost:3001/api/plants/5e38921e9c3bd077f50dc9a2
 
 Success! We built a full CRUD JSON API in MongoDB, Mongoose, and Express using Express Router! 
 
@@ -558,12 +533,6 @@ Success! We built a full CRUD JSON API in MongoDB, Mongoose, and Express using E
 
 ## Requirements
 - Express connected to MongoDB through Mongoose connection
-- All plant routes and controllers testing properly through Insomnia 
+- All plant routes and controllers testing properly through ThunderClient 
 
 
-## Bonus
-- Add your own selection of plants to your API!
-
-
-## Submission Guidelines
-- Pull Request must be submitted utilizing these guidelines: [PR Guidelines](https://github.com/SEI-R-2-22/template_pull_request)
